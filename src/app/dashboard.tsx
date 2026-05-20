@@ -155,7 +155,7 @@ export default function DashboardScreen() {
                 {rootCauses.metricsEffect && (
                   <View style={styles.effectGrid}>
                     {rootCauses.metricsEffect.map((effect: any, idx: number) => (
-                      <View key={idx} style={[styles.effectItem, { backgroundColor: '#0F172A' }]}>
+                      <View key={idx} style={[styles.effectItem, { backgroundColor: '#070A13' }]}>
                         <ThemedText type="small" themeColor="textSecondary" style={{ fontSize: 11 }}>
                           {effect.metric}
                         </ThemedText>

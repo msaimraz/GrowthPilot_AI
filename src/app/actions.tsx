@@ -117,7 +117,7 @@ export default function ActionsScreen() {
                     }
                   ]}>
                     {isSelected && (
-                      <ThemedText type="code" style={{ color: '#0F172A', fontSize: 12, fontWeight: '900' }}>
+                      <ThemedText type="code" style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '900' }}>
                         ✓
                       </ThemedText>
                     )}
@@ -150,12 +150,12 @@ export default function ActionsScreen() {
                   </View>
 
                   <View style={styles.tagRow}>
-                    <View style={[styles.tag, { backgroundColor: '#0F172A' }]}>
+                    <View style={[styles.tag, { backgroundColor: '#070A13' }]}>
                       <ThemedText type="code" style={{ color: '#94A3B8', fontSize: 10 }}>
                         Effort: {rec.effort}
                       </ThemedText>
                     </View>
-                    <View style={[styles.tag, { backgroundColor: '#0F172A' }]}>
+                    <View style={[styles.tag, { backgroundColor: '#070A13' }]}>
                       <ThemedText type="code" style={{ color: '#94A3B8', fontSize: 10 }}>
                         Cost: {rec.cost}
                       </ThemedText>
@@ -181,7 +181,7 @@ export default function ActionsScreen() {
             >
               <ThemedText type="default" style={[
                 styles.ctaText,
-                { color: selectedIds.length > 0 ? '#0F172A' : theme.textSecondary }
+                { color: selectedIds.length > 0 ? '#FFFFFF' : theme.textSecondary }
               ]}>
                 {selectedIds.length > 0
                   ? `Simulate ${selectedIds.length} Action${selectedIds.length > 1 ? 's' : ''} →`
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 8,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#070A13',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 5,
     borderRadius: 3,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#070A13',
     overflow: 'hidden',
   },
   impactBarFill: {

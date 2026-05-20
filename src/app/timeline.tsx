@@ -369,7 +369,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#0F172A',
+    backgroundColor: '#070A13',
   },
   circleInner: {
     width: 10,
@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#0F172A',
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#334155',
@@ -492,6 +492,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#FFFFFF',
   },
 });

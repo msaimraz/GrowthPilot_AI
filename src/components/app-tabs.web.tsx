@@ -6,20 +6,22 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { SymbolView } from 'expo-symbols';
 import React from 'react';
-import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet, useWindowDimensions, ScrollView } from 'react-native';
 
-import { ExternalLink } from './external-link';
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
-import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { MaxContentWidth, Spacing } from '@/constants/theme';
 
 export default function AppTabs() {
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
+  const paddingTopOffset = isMobile ? 68 : 80;
+
   return (
     <Tabs>
-      <TabSlot style={{ height: '100%' }} />
+      <TabSlot style={{ height: '100%', paddingTop: paddingTopOffset }} />
       <TabList asChild>
         <CustomTabList>
           <TabTrigger name="index" href="/" asChild>
@@ -61,28 +63,30 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
 }
 
 export function CustomTabList(props: TabListProps) {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const { width } = useWindowDimensions();
+  const isMobile = width < 768;
 
   return (
-    <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
-          GrowthPilot AI
-        </ThemedText>
+    <View {...props} style={[styles.tabListContainer, isMobile && styles.tabListContainerMobile]}>
+      <ThemedView type="backgroundElement" style={[styles.innerContainer, isMobile && styles.innerContainerMobile]}>
+        {!isMobile && (
+          <ThemedText type="smallBold" style={styles.brandText}>
+            GrowthPilot AI
+          </ThemedText>
+        )}
 
-        {props.children}
-
-        <ExternalLink href="https://docs.expo.dev" asChild>
-          <Pressable style={styles.externalPressable}>
-            <ThemedText type="link">Docs</ThemedText>
-            <SymbolView
-              tintColor={colors.text}
-              name={{ ios: 'arrow.up.right.square', web: 'link' }}
-              size={12}
-            />
-          </Pressable>
-        </ExternalLink>
+        {isMobile ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.scrollTriggersContainer}
+            style={styles.scrollTriggers}
+          >
+            {props.children}
+          </ScrollView>
+        ) : (
+          props.children
+        )}
       </ThemedView>
     </View>
   );
@@ -96,6 +100,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
+    zIndex: 100,
+  },
+  tabListContainerMobile: {
+    padding: Spacing.two,
   },
   innerContainer: {
     paddingVertical: Spacing.two,
@@ -106,6 +114,29 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: Spacing.two,
     maxWidth: MaxContentWidth,
+    borderWidth: 1,
+    borderColor: 'rgba(148, 163, 184, 0.15)',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  innerContainerMobile: {
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.two,
+    borderRadius: Spacing.three,
+    gap: Spacing.one,
+  },
+  scrollTriggers: {
+    flexGrow: 1,
+    width: '100%',
+  },
+  scrollTriggersContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.one,
   },
   brandText: {
     marginRight: 'auto',

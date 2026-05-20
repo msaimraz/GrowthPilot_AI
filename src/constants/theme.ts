@@ -9,24 +9,24 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#1F1F1F',
-    background: '#FFFFFF',
-    backgroundElement: '#F8F9FA',
-    backgroundSelected: '#4285F4',
-    textSecondary: '#5F6368',
+    text: '#0F172A',
+    background: '#F8FAFC',
+    backgroundElement: '#EFF3F8',
+    backgroundSelected: '#4F46E5',
+    textSecondary: '#475569',
   },
   dark: {
     text: '#F8FAFC',
-    background: '#0F172A',
-    backgroundElement: '#1E293B',
-    backgroundSelected: '#4285F4',
+    background: '#070A13',
+    backgroundElement: '#0F172A',
+    backgroundSelected: '#6366F1',
     textSecondary: '#94A3B8',
   },
 } as const;
 
-// Premium brand palette from the AI Seekho / Google Developer reference image
+// Premium brand palette
 export const BrandColors = {
-  blue: '#4285F4',
+  blue: '#6366F1',
   red: '#EA4335',
   yellow: '#FBBC05',
   green: '#34A853',
@@ -34,7 +34,7 @@ export const BrandColors = {
   lightRed: '#FCE8E6',
   lightYellow: '#FEF7E0',
   lightGreen: '#E6F4EA',
-  borderDark: '#1E293B',
+  borderDark: '#0F172A',
 } as const;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;

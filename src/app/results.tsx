@@ -105,7 +105,7 @@ export default function ResultsScreen() {
                       </View>
                    </View>
 
-                   <View style={[styles.deltaRow, { backgroundColor: '#0F172A' }]}>
+                   <View style={[styles.deltaRow, { backgroundColor: '#070A13' }]}>
                       <ThemedText type="smallBold" style={{ color: changeColor, fontSize: 12 }}>
                          {metric.change}
                       </ThemedText>
@@ -127,7 +127,7 @@ export default function ResultsScreen() {
                 }
               ]}
             >
-              <ThemedText type="default" style={[styles.ctaText, { color: '#0F172A' }]}>
+              <ThemedText type="default" style={[styles.ctaText, { color: '#FFFFFF' }]}>
                 Start New Analysis
               </ThemedText>
             </Pressable>

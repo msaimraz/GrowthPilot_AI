@@ -1,108 +1,145 @@
-import { Image } from 'expo-image';
-import { StyleSheet, View } from 'react-native';
-import Animated, { Keyframe, Easing } from 'react-native-reanimated';
-
-import classes from './animated-icon.module.css';
-const DURATION = 300;
+import React from 'react';
 
 export function AnimatedSplashOverlay() {
   return null;
 }
 
-const keyframe = new Keyframe({
-  0: {
-    transform: [{ scale: 0 }],
-  },
-  60: {
-    transform: [{ scale: 1.2 }],
-    easing: Easing.elastic(1.2),
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(1.2),
-  },
-});
-
-const logoKeyframe = new Keyframe({
-  0: {
-    opacity: 0,
-  },
-  60: {
-    transform: [{ scale: 1.2 }],
-    opacity: 0,
-    easing: Easing.elastic(1.2),
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    opacity: 1,
-    easing: Easing.elastic(1.2),
-  },
-});
-
-const glowKeyframe = new Keyframe({
-  0: {
-    transform: [{ rotateZ: '-180deg' }, { scale: 0.8 }],
-    opacity: 0,
-  },
-  [DURATION / 1000]: {
-    transform: [{ rotateZ: '0deg' }, { scale: 1 }],
-    opacity: 1,
-    easing: Easing.elastic(0.7),
-  },
-  100: {
-    transform: [{ rotateZ: '7200deg' }],
-  },
-});
-
 export function AnimatedIcon() {
   return (
-    <View style={styles.iconContainer}>
-      <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
-        <Image style={styles.glow} source={require('@/assets/images/logo-glow.png')} />
-      </Animated.View>
+    <div style={styles.iconContainer}>
+      {/* Inject premium keyframe animations directly */}
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes customPulse {
+          0%, 100% { transform: scale(0.96); opacity: 0.9; }
+          50% { transform: scale(1.04); opacity: 1; }
+        }
+        @keyframes customRotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .pulse-anim {
+          animation: customPulse 3s ease-in-out infinite;
+        }
+        .rotate-anim {
+          animation: customRotate 12s linear infinite;
+          transform-origin: center;
+        }
+      `}} />
 
-      <Animated.View style={styles.background} entering={keyframe.duration(DURATION)}>
-        <div className={classes.expoLogoBackground} />
-      </Animated.View>
+      {/* Glow Backdrop */}
+      <div style={styles.glowWrapper} className="pulse-anim">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#6366F1" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#06B6D4" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <circle cx="60" cy="60" r="54" fill="url(#glowGrad)" />
+        </svg>
+      </div>
 
-      <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
-      </Animated.View>
-    </View>
+      {/* Rotating Dotted Orbital Ring */}
+      <div style={styles.absoluteFill} className="rotate-anim">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="accentGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#8B5CF6" />
+              <stop offset="50%" stopColor="#6366F1" />
+              <stop offset="100%" stopColor="#06B6D4" />
+            </linearGradient>
+          </defs>
+          <circle 
+            cx="60" 
+            cy="60" 
+            r="46" 
+            stroke="url(#accentGrad1)" 
+            strokeWidth="1.5" 
+            strokeDasharray="6,4"
+            fill="none"
+            opacity="0.6"
+          />
+        </svg>
+      </div>
+
+      {/* Main Brand Wings & Upward Jet */}
+      <div style={styles.absoluteFill}>
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="accentGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#8B5CF6" />
+              <stop offset="50%" stopColor="#6366F1" />
+              <stop offset="100%" stopColor="#06B6D4" />
+            </linearGradient>
+          </defs>
+
+          {/* Steering Wheel/Compass Ring */}
+          <circle 
+            cx="60" 
+            cy="60" 
+            r="38" 
+            stroke="url(#accentGrad2)" 
+            strokeWidth="2.5" 
+            fill="none"
+            opacity="0.8"
+          />
+
+          {/* Compass Steering Ticks */}
+          <path d="M60 18 L60 24" stroke="url(#accentGrad2)" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M60 96 L60 102" stroke="url(#accentGrad2)" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M18 60 L24 60" stroke="url(#accentGrad2)" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M96 60 L102 60" stroke="url(#accentGrad2)" strokeWidth="2.5" strokeLinecap="round" />
+
+          {/* Pilot Wings & Growth Jet Emblem */}
+          <g transform="translate(30, 30) scale(0.5)">
+            <path 
+              d="M10 50 C30 22, 90 22, 110 50 C90 78, 30 78, 10 50 Z" 
+              fill="none" 
+              stroke="url(#accentGrad2)" 
+              strokeWidth="4" 
+              opacity="0.55" 
+            />
+            {/* Soaring Rocket/Jet */}
+            <path 
+              d="M60 15 L85 85 L60 70 L35 85 Z" 
+              fill="url(#accentGrad2)" 
+              stroke="#ffffff"
+              strokeWidth="2.5"
+            />
+            {/* Orange thrust flame */}
+            <path 
+              d="M52 75 L60 95 L68 75 Z" 
+              fill="#FB7185" 
+            />
+          </g>
+        </svg>
+      </div>
+    </div>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    width: '100%',
-    zIndex: 1000,
-    position: 'absolute',
-    top: 128 / 2 + 138,
-  },
-  imageContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  glow: {
-    width: 201,
-    height: 201,
-    position: 'absolute',
-  },
+const styles = {
   iconContainer: {
+    width: '120px',
+    height: '120px',
+    display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 128,
-    height: 128,
+    position: 'relative' as const,
   },
-  image: {
-    position: 'absolute',
-    width: 76,
-    height: 71,
+  glowWrapper: {
+    position: 'absolute' as const,
+    width: '120px',
+    height: '120px',
   },
-  background: {
-    width: 128,
-    height: 128,
-    position: 'absolute',
+  absoluteFill: {
+    position: 'absolute' as const,
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-});
+};

@@ -1,12 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
-import { Dimensions, StyleSheet, View, Animated as RNAnimated } from 'react-native';
-import Svg, { Polygon, Path } from 'react-native-svg';
-
-const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
-const DURATION = 600;
+import React, { useState, useEffect, useRef } from 'react';
+import { StyleSheet, View, Animated, Easing } from 'react-native';
+import Svg, { Path, Circle, Defs, LinearGradient, Stop, G } from 'react-native-svg';
 
 export function AnimatedSplashOverlay() {
   const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setVisible(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (!visible) return null;
 
@@ -16,21 +20,36 @@ export function AnimatedSplashOverlay() {
 }
 
 export function AnimatedIcon() {
-  const pulseAnim = useRef(new RNAnimated.Value(0.95)).current;
-  const rotateAnim = useRef(new RNAnimated.Value(0)).current;
+  const pulseAnim = useRef(new Animated.Value(0.96)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Pulse loop for the background hexagon
-    RNAnimated.loop(
-      RNAnimated.sequence([
-        RNAnimated.timing(pulseAnim, { toValue: 1.05, duration: 1500, useNativeDriver: true }),
-        RNAnimated.timing(pulseAnim, { toValue: 0.95, duration: 1500, useNativeDriver: true }),
+    // Smooth pulsing loop
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.04,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.96,
+          duration: 2000,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
       ])
     ).start();
 
-    // Rotate loop for the inner sparkle star
-    RNAnimated.loop(
-      RNAnimated.timing(rotateAnim, { toValue: 1, duration: 8000, useNativeDriver: true })
+    // Constant rotation loop for orbital path
+    Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 10000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
     ).start();
   }, []);
 
@@ -41,68 +60,121 @@ export function AnimatedIcon() {
 
   return (
     <View style={styles.iconContainer}>
-      {/* Dynamic 3D Hexagon SVG Wrapper */}
-      <RNAnimated.View style={[styles.logoWrapper, { transform: [{ scale: pulseAnim }] }]}>
+      {/* Glow Backdrop */}
+      <Animated.View style={[styles.glowWrapper, { transform: [{ scale: pulseAnim }] }]}>
         <Svg width="120" height="120" viewBox="0 0 120 120" fill="none">
-          {/* Main Blue Hexagon Outline & Glow Shadow */}
-          <Polygon 
-            points="60,10 105,35 105,85 60,110 15,85 15,35" 
-            fill="#4285F4" 
-            stroke="#1E293B"
-            strokeWidth="3.5"
-          />
-          {/* Layered Inner Hexagon Accent for premium 3D Depth */}
-          <Polygon 
-            points="60,20 95,40 95,80 60,100 25,80 25,40" 
-            fill="#2F75E8"
+          <Defs>
+            <LinearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <Stop offset="0%" stopColor="#6366F1" stopOpacity="0.35" />
+              <Stop offset="100%" stopColor="#06B6D4" stopOpacity="0.0" />
+            </LinearGradient>
+          </Defs>
+          <Circle cx="60" cy="60" r="54" fill="url(#glowGrad)" />
+        </Svg>
+      </Animated.View>
+
+      {/* Rotating Dotted Orbital Ring */}
+      <Animated.View style={[styles.absoluteFill, { transform: [{ rotate: spin }] }]}>
+        <Svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+          <Defs>
+            <LinearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <Stop offset="0%" stopColor="#8B5CF6" />
+              <Stop offset="50%" stopColor="#6366F1" />
+              <Stop offset="100%" stopColor="#06B6D4" />
+            </LinearGradient>
+          </Defs>
+          <Circle 
+            cx="60" 
+            cy="60" 
+            r="46" 
+            stroke="url(#accentGrad)" 
+            strokeWidth="1.5" 
+            strokeDasharray="6,4"
+            opacity="0.6"
           />
         </Svg>
+      </Animated.View>
 
-        {/* Pulsing & Spinning Sparkle Star (Gemini / AI Seekho Core Brand Emblem) */}
-        <RNAnimated.View style={[styles.sparkleContainer, { transform: [{ rotate: spin }] }]}>
-          <Svg width="46" height="46" viewBox="0 0 24 24" fill="none">
+      {/* Main Brand Wings & Upward Jet */}
+      <View style={styles.absoluteFill}>
+        <Svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+          <Defs>
+            <LinearGradient id="accentGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <Stop offset="0%" stopColor="#8B5CF6" />
+              <Stop offset="50%" stopColor="#6366F1" />
+              <Stop offset="100%" stopColor="#06B6D4" />
+            </LinearGradient>
+          </Defs>
+
+          {/* Steering Wheel/Compass Ring */}
+          <Circle 
+            cx="60" 
+            cy="60" 
+            r="38" 
+            stroke="url(#accentGrad2)" 
+            strokeWidth="2.5" 
+            opacity="0.8"
+          />
+
+          {/* Compass Steering Ticks */}
+          <Path d="M60 18 L60 24" stroke="url(#accentGrad2)" strokeWidth="2.5" strokeLinecap="round" />
+          <Path d="M60 96 L60 102" stroke="url(#accentGrad2)" strokeWidth="2.5" strokeLinecap="round" />
+          <Path d="M18 60 L24 60" stroke="url(#accentGrad2)" strokeWidth="2.5" strokeLinecap="round" />
+          <Path d="M96 60 L102 60" stroke="url(#accentGrad2)" strokeWidth="2.5" strokeLinecap="round" />
+
+          {/* Pilot Wings & Growth Jet Emblem */}
+          <G transform="translate(30, 30) scale(0.5)">
             <Path 
-              d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4771 12 22C12 16.4771 16.4771 12 22 12C16.4771 12 12 7.52285 12 2Z" 
-              fill="#FFFFFF" 
+              d="M10 50 C30 22, 90 22, 110 50 C90 78, 30 78, 10 50 Z" 
+              fill="none" 
+              stroke="url(#accentGrad2)" 
+              strokeWidth="4" 
+              opacity="0.55" 
             />
-          </Svg>
-        </RNAnimated.View>
-      </RNAnimated.View>
+            {/* Soaring Rocket/Jet */}
+            <Path 
+              d="M60 15 L85 85 L60 70 L35 85 Z" 
+              fill="url(#accentGrad2)" 
+              stroke="#ffffff"
+              strokeWidth="2.5"
+            />
+            {/* Orange thrust flame */}
+            <Path 
+              d="M52 75 L60 95 L68 75 Z" 
+              fill="#FB7185" 
+            />
+          </G>
+        </Svg>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   iconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 140,
-    height: 140,
-    zIndex: 100,
-    marginBottom: 8,
-  },
-  logoWrapper: {
     width: 120,
     height: 120,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    shadowColor: '#4285F4',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.45,
-    shadowRadius: 18,
-    elevation: 10,
   },
-  sparkleContainer: {
+  glowWrapper: {
     position: 'absolute',
-    width: 46,
-    height: 46,
+    width: 120,
+    height: 120,
+  },
+  absoluteFill: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },
   backgroundSolidColor: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#070A13',
     zIndex: 1000,
   },
 });

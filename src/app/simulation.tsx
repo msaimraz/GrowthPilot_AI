@@ -158,7 +158,7 @@ export default function SimulationScreen() {
           >
             <ThemedText type="default" style={[
               styles.ctaText,
-              { color: simulating ? theme.textSecondary : '#0F172A' }
+              { color: simulating ? theme.textSecondary : '#FFFFFF' }
             ]}>
               {simulating ? 'Awaiting Completion...' : 'View Evaluation Results →'}
             </ThemedText>
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1E293B',
+    backgroundColor: '#0F172A',
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#334155',
