@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, ScrollView, ActivityIndicator, Pressable, Platform } from 'react-native';
+import { StyleSheet, View, ScrollView, ActivityIndicator, Pressable, Animated as RNAnimated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useQuery, useMutation, useAction } from 'convex/react';
@@ -10,12 +10,29 @@ import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+// Fade-in animation hook
+function useFadeIn(delay: number = 0) {
+  const opacity = useRef(new RNAnimated.Value(0)).current;
+  const translateY = useRef(new RNAnimated.Value(15)).current;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      RNAnimated.parallel([
+        RNAnimated.timing(opacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+        RNAnimated.timing(translateY, { toValue: 0, duration: 400, useNativeDriver: true }),
+      ]).start();
+    }, delay);
+    return () => clearTimeout(timer);
+  }, []);
+  return { opacity, transform: [{ translateY }] };
+}
+
 export default function TimelineScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const theme = useTheme();
   
-  const runId = params.runId as any;
+  const latestRun = useQuery(api.runs.getLatest);
+  const runId = (params.runId as any) || latestRun?._id;
   const run = useQuery(api.runs.get, runId ? { runId } : "skip" as any);
   const triggerSimulation = useAction(api.runs.simulateLoop);
   const createRun = useMutation(api.runs.create);
@@ -38,9 +55,26 @@ export default function TimelineScreen() {
     if (logEndRef.current) {
       setTimeout(() => {
         logEndRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      }, 150);
     }
   }, [run?.logs]);
+
+  // Pulsing active agent ring animation
+  const pulseAnim = useRef(new RNAnimated.Value(0.8)).current;
+  useEffect(() => {
+    RNAnimated.loop(
+      RNAnimated.sequence([
+        RNAnimated.timing(pulseAnim, { toValue: 1.2, duration: 1000, useNativeDriver: true }),
+        RNAnimated.timing(pulseAnim, { toValue: 0.8, duration: 1000, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  // Staggered screen item entries
+  const headerAnim = useFadeIn(0);
+  const timelineAnim = useFadeIn(150);
+  const consoleAnim = useFadeIn(300);
+  const controlsAnim = useFadeIn(400);
 
   const handleRestartSimulation = async () => {
     if (!run) return;
@@ -89,8 +123,8 @@ export default function TimelineScreen() {
       <SafeAreaView style={styles.safeArea}>
         
         {/* Run Metadata Header */}
-        <View style={styles.header}>
-          <ThemedText type="smallBold" style={{ color: theme.backgroundSelected, letterSpacing: 1.5 }}>
+        <RNAnimated.View style={[styles.header, headerAnim]}>
+          <ThemedText type="smallBold" style={{ color: theme.backgroundSelected, letterSpacing: 1.5, fontSize: 11 }}>
             AUTONOMOUS OPERATOR LOOP
           </ThemedText>
           <ThemedText type="subtitle" style={styles.headerTitle}>
@@ -102,13 +136,13 @@ export default function TimelineScreen() {
               { backgroundColor: run.status === 'completed' ? '#14B8A6' : '#0EA5E9' }
             ]} />
             <ThemedText type="small" themeColor="textSecondary">
-              Status: {run.status.toUpperCase()} (Agent: {run.activeAgent})
+              Status: {run.status.toUpperCase()} {run.status !== 'completed' && `— Active: ${run.activeAgent}`}
             </ThemedText>
           </View>
-        </View>
+        </RNAnimated.View>
 
         {/* State Machine Steps Timeline */}
-        <View style={[styles.timelineCard, { backgroundColor: theme.backgroundElement }]}>
+        <RNAnimated.View style={[styles.timelineCard, { backgroundColor: theme.backgroundElement }, timelineAnim]}>
           {stepsList.map((item, index) => {
             const status = getStepStatus(item.key);
             
@@ -118,38 +152,53 @@ export default function TimelineScreen() {
                   {/* Outer circle */}
                   <View style={[
                     styles.circleOutline,
-                    status === 'active' && { borderColor: theme.backgroundSelected, shadowColor: theme.backgroundSelected, shadowOpacity: 0.5, shadowRadius: 6, elevation: 4 },
+                    status === 'active' && { borderColor: theme.backgroundSelected },
                     status === 'completed' && { borderColor: '#14B8A6' },
                     status === 'pending' && { borderColor: theme.textSecondary + '40' }
                   ]}>
                     {/* Inner node */}
-                    <View style={[
-                      styles.circleInner,
-                      status === 'active' && { backgroundColor: theme.backgroundSelected },
-                      status === 'completed' && { backgroundColor: '#14B8A6' },
-                      status === 'pending' && { backgroundColor: 'transparent' }
-                    ]} />
+                    {status === 'active' ? (
+                      <RNAnimated.View style={[
+                        styles.circleInnerActive,
+                        { backgroundColor: theme.backgroundSelected, transform: [{ scale: pulseAnim }] }
+                      ]} />
+                    ) : (
+                      <View style={[
+                        styles.circleInner,
+                        status === 'completed' && { backgroundColor: '#14B8A6' },
+                        status === 'pending' && { backgroundColor: 'transparent' }
+                      ]} />
+                    )}
                   </View>
                   {/* Connector Line */}
                   {index < stepsList.length - 1 && (
                     <View style={[
                       styles.connectorLine,
-                      { backgroundColor: status === 'completed' ? '#14B8A6' : theme.textSecondary + '30' }
+                      { backgroundColor: status === 'completed' ? '#14B8A6' : theme.textSecondary + '20' }
                     ]} />
                   )}
                 </View>
                 
                 <View style={styles.stepTextContainer}>
-                  <ThemedText 
-                    type="smallBold" 
-                    style={[
-                      styles.stepLabel,
-                      status === 'active' && { color: theme.backgroundSelected },
-                      status === 'completed' && { color: '#14B8A6' }
-                    ]}
-                  >
-                    {item.label}
-                  </ThemedText>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <ThemedText 
+                      type="smallBold" 
+                      style={[
+                        styles.stepLabel,
+                        status === 'active' && { color: theme.backgroundSelected },
+                        status === 'completed' && { color: '#14B8A6' }
+                      ]}
+                    >
+                      {item.label}
+                    </ThemedText>
+                    {status === 'active' && (
+                      <View style={[styles.activeTag, { backgroundColor: theme.backgroundSelected + '20' }]}>
+                        <ThemedText type="code" style={{ color: theme.backgroundSelected, fontSize: 8, fontWeight: '700' }}>
+                          THINKING...
+                        </ThemedText>
+                      </View>
+                    )}
+                  </View>
                   <ThemedText type="small" themeColor="textSecondary">
                     {item.agent}
                   </ThemedText>
@@ -157,52 +206,75 @@ export default function TimelineScreen() {
               </View>
             );
           })}
-        </View>
+        </RNAnimated.View>
 
         {/* Rolling Logs Console */}
-        <View style={styles.consoleHeader}>
-          <ThemedText type="smallBold" themeColor="textSecondary">
-            AGENT WORKLOGS
-          </ThemedText>
-        </View>
-        
-        <View style={[styles.consoleContainer, { backgroundColor: '#020617', borderColor: theme.backgroundElement }]}>
-          <ScrollView 
-            ref={logEndRef}
-            contentContainerStyle={styles.consoleScroll}
-            showsVerticalScrollIndicator={true}
-          >
-            {run.logs.map((log, idx) => {
-              let logColor = '#F8FAFC';
-              if (log.type === 'success') logColor = '#14B8A6';
-              if (log.type === 'warn') logColor = '#F59E0B';
-              if (log.type === 'error') logColor = '#EF4444';
-              
-              const timeString = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        <RNAnimated.View style={[{ flex: 1 }, consoleAnim]}>
+          <View style={styles.consoleHeader}>
+            <ThemedText type="smallBold" themeColor="textSecondary" style={{ fontSize: 11, letterSpacing: 1 }}>
+              REALTIME WORKLOGS
+            </ThemedText>
+          </View>
+          
+          <View style={[styles.consoleContainer, { backgroundColor: '#020617', borderColor: theme.backgroundElement }]}>
+            <View style={styles.consoleBar}>
+              <View style={styles.winDotContainer}>
+                <View style={[styles.winDot, { backgroundColor: '#EF4444' }]} />
+                <View style={[styles.winDot, { backgroundColor: '#F59E0B' }]} />
+                <View style={[styles.winDot, { backgroundColor: '#10B981' }]} />
+              </View>
+              <ThemedText type="code" style={styles.consoleTitle}>operator_agent@growthpilot:~</ThemedText>
+            </View>
+            
+            <ScrollView 
+              ref={logEndRef}
+              contentContainerStyle={styles.consoleScroll}
+              showsVerticalScrollIndicator={true}
+            >
+              {run.logs.map((log, idx) => {
+                let logColor = '#F8FAFC';
+                if (log.type === 'success') logColor = '#14B8A6';
+                if (log.type === 'warn') logColor = '#F59E0B';
+                if (log.type === 'error') logColor = '#EF4444';
+                
+                const timeString = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-              return (
-                <View key={idx} style={styles.logRow}>
-                  <ThemedText type="code" style={styles.logTime}>
-                    [{timeString}]
-                  </ThemedText>
-                  <ThemedText type="code" style={[styles.logAgent, { color: theme.backgroundSelected }]}>
-                    [{log.agent}]
-                  </ThemedText>
-                  <ThemedText type="code" style={[styles.logMsg, { color: logColor }]}>
-                    {log.message}
+                return (
+                  <View key={idx} style={styles.logRow}>
+                    <ThemedText type="code" style={styles.logTime}>
+                      [{timeString}]
+                    </ThemedText>
+                    <ThemedText type="code" style={[styles.logAgent, { color: theme.backgroundSelected }]}>
+                      [{log.agent}]
+                    </ThemedText>
+                    <ThemedText type="code" style={[styles.logMsg, { color: logColor }]}>
+                      {log.message}
+                    </ThemedText>
+                  </View>
+                );
+              })}
+              
+              {run.status !== 'completed' && (
+                <View style={styles.thinkingLogContainer}>
+                  <ActivityIndicator size="small" color={theme.backgroundSelected} style={{ marginRight: 6 }} />
+                  <ThemedText type="code" style={{ color: theme.backgroundSelected }}>
+                    Agent is processing next insight stream...
                   </ThemedText>
                 </View>
-              );
-            })}
-          </ScrollView>
-        </View>
+              )}
+            </ScrollView>
+          </View>
+        </RNAnimated.View>
 
         {/* Action Controls */}
-        <View style={styles.controlsRow}>
+        <RNAnimated.View style={[styles.controlsRow, controlsAnim]}>
           {run.status === 'completed' ? (
             <Pressable
               onPress={() => router.push({ pathname: '/dashboard', params: { runId } })}
-              style={[styles.primaryButton, { backgroundColor: theme.backgroundSelected }]}
+              style={({ pressed }) => [
+                styles.primaryButton,
+                { backgroundColor: theme.backgroundSelected, opacity: pressed ? 0.9 : 1 }
+              ]}
             >
               <ThemedText type="default" style={styles.buttonText}>
                 Proceed to Dashboard →
@@ -211,8 +283,8 @@ export default function TimelineScreen() {
           ) : (
             <View style={styles.runningContainer}>
               <ActivityIndicator size="small" color={theme.backgroundSelected} />
-              <ThemedText type="small" themeColor="textSecondary" style={{ marginLeft: 8 }}>
-                AI Pilot operating growth simulation...
+              <ThemedText type="small" themeColor="textSecondary" style={{ marginLeft: 8, fontWeight: '600' }}>
+                Orchestrating agent loop...
               </ThemedText>
             </View>
           )}
@@ -229,7 +301,7 @@ export default function TimelineScreen() {
               Restart Loop
             </ThemedText>
           </Pressable>
-        </View>
+        </RNAnimated.View>
 
       </SafeAreaView>
     </ThemedView>
@@ -262,6 +334,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
+    letterSpacing: -0.5,
   },
   statusRow: {
     flexDirection: 'row',
@@ -275,7 +348,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   timelineCard: {
-    borderRadius: 16,
+    borderRadius: 20,
     padding: Spacing.four,
     marginBottom: Spacing.three,
   },
@@ -303,6 +376,11 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
   },
+  circleInnerActive: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
   connectorLine: {
     width: 2,
     height: 38,
@@ -316,6 +394,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  activeTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
   consoleHeader: {
     marginBottom: Spacing.one,
     paddingHorizontal: Spacing.one,
@@ -323,9 +406,34 @@ const styles = StyleSheet.create({
   consoleContainer: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     marginBottom: Spacing.four,
+  },
+  consoleBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#1E293B',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+    position: 'relative',
+  },
+  winDotContainer: {
+    flexDirection: 'row',
+    gap: 6,
+    position: 'absolute',
+    left: 12,
+  },
+  winDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  consoleTitle: {
+    fontSize: 11,
+    color: '#94A3B8',
   },
   consoleScroll: {
     padding: Spacing.three,
@@ -349,6 +457,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     flex: 1,
+  },
+  thinkingLogContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: Spacing.one,
   },
   controlsRow: {
     flexDirection: 'row',

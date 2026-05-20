@@ -15,7 +15,8 @@ export default function ResultsScreen() {
   const router = useRouter();
   const theme = useTheme();
   
-  const runId = params.runId as any;
+  const latestRun = useQuery(api.runs.getLatest);
+  const runId = (params.runId as any) || latestRun?._id;
   const run = useQuery(api.runs.get, runId ? { runId } : "skip" as any);
 
   if (!runId || !run) {

@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, View, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { StyleSheet, View, ScrollView, ActivityIndicator, Animated as RNAnimated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { useQuery } from 'convex/react';
@@ -10,11 +10,34 @@ import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+// Fade-in animation hook
+function useFadeIn(delay: number = 0) {
+  const opacity = useRef(new RNAnimated.Value(0)).current;
+  const translateY = useRef(new RNAnimated.Value(15)).current;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      RNAnimated.parallel([
+        RNAnimated.timing(opacity, { toValue: 1, duration: 400, useNativeDriver: true }),
+        RNAnimated.timing(translateY, { toValue: 0, duration: 400, useNativeDriver: true }),
+      ]).start();
+    }, delay);
+    return () => clearTimeout(timer);
+  }, []);
+  return { opacity, transform: [{ translateY }] };
+}
+
 export default function DashboardScreen() {
   const params = useLocalSearchParams();
   const theme = useTheme();
-  const runId = params.runId as any;
+  const latestRun = useQuery(api.runs.getLatest);
+  const runId = (params.runId as any) || latestRun?._id;
   const run = useQuery(api.runs.get, runId ? { runId } : "skip" as any);
+
+  // Staggered section animations
+  const headerAnim = useFadeIn(0);
+  const metricsGridAnim = useFadeIn(150);
+  const anomaliesAnim = useFadeIn(300);
+  const rootCauseAnim = useFadeIn(450);
 
   if (!runId || !run) {
     return (
@@ -47,7 +70,7 @@ export default function DashboardScreen() {
         <SafeAreaView style={styles.safeArea}>
 
           {/* Header */}
-          <View style={styles.header}>
+          <RNAnimated.View style={[styles.header, headerAnim]}>
             <ThemedText type="smallBold" style={{ color: theme.backgroundSelected, letterSpacing: 1.5, fontSize: 11 }}>
               INSIGHT ENGINE — OBSERVE & REASON
             </ThemedText>
@@ -57,57 +80,61 @@ export default function DashboardScreen() {
             <ThemedText type="small" themeColor="textSecondary">
               {run.datasetName}
             </ThemedText>
-          </View>
+          </RNAnimated.View>
 
           {/* KPI Metrics Grid */}
-          <View style={styles.sectionHeader}>
-            <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
-              KEY METRICS
-            </ThemedText>
-          </View>
-          <View style={styles.metricsGrid}>
-            {metrics.map((metric: any, idx: number) => (
-              <View key={idx} style={[styles.metricCard, { backgroundColor: theme.backgroundElement }]}>
-                <ThemedText type="small" themeColor="textSecondary" style={styles.metricName}>
-                  {metric.name}
-                </ThemedText>
-                <ThemedText type="subtitle" style={styles.metricValue}>
-                  {metric.value}
-                </ThemedText>
-                <View style={styles.changeRow}>
-                  <View style={[styles.changeBadge, { backgroundColor: getStatusColor(metric.status) + '20' }]}>
-                    <ThemedText type="code" style={[styles.changeText, { color: getStatusColor(metric.status) }]}>
-                      {metric.change}
-                    </ThemedText>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          {/* Anomalies Detected */}
-          <View style={styles.sectionHeader}>
-            <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
-              ANOMALIES DETECTED
-            </ThemedText>
-          </View>
-          {anomalies.map((anomaly: any, idx: number) => (
-            <View key={idx} style={[styles.anomalyCard, { backgroundColor: theme.backgroundElement }]}>
-              <View style={styles.anomalyIconRow}>
-                <View style={[styles.anomalyDot, { backgroundColor: '#EF4444' }]} />
-                <ThemedText type="default" style={styles.anomalyTitle}>
-                  {anomaly.title}
-                </ThemedText>
-              </View>
-              <ThemedText type="small" themeColor="textSecondary" style={styles.anomalyDesc}>
-                {anomaly.desc}
+          <RNAnimated.View style={[{ width: '100%' }, metricsGridAnim]}>
+            <View style={styles.sectionHeader}>
+              <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+                KEY METRICS
               </ThemedText>
             </View>
-          ))}
+            <View style={styles.metricsGrid}>
+              {metrics.map((metric: any, idx: number) => (
+                <View key={idx} style={[styles.metricCard, { backgroundColor: theme.backgroundElement }]}>
+                  <ThemedText type="small" themeColor="textSecondary" style={styles.metricName}>
+                    {metric.name}
+                  </ThemedText>
+                  <ThemedText type="subtitle" style={styles.metricValue}>
+                    {metric.value}
+                  </ThemedText>
+                  <View style={styles.changeRow}>
+                    <View style={[styles.changeBadge, { backgroundColor: getStatusColor(metric.status) + '20' }]}>
+                      <ThemedText type="code" style={[styles.changeText, { color: getStatusColor(metric.status) }]}>
+                        {metric.change}
+                      </ThemedText>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </RNAnimated.View>
+
+          {/* Anomalies Detected */}
+          <RNAnimated.View style={[{ width: '100%' }, anomaliesAnim]}>
+            <View style={styles.sectionHeader}>
+              <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
+                ANOMALIES DETECTED
+              </ThemedText>
+            </View>
+            {anomalies.map((anomaly: any, idx: number) => (
+              <View key={idx} style={[styles.anomalyCard, { backgroundColor: theme.backgroundElement }]}>
+                <View style={styles.anomalyIconRow}>
+                  <View style={[styles.anomalyDot, { backgroundColor: '#EF4444' }]} />
+                  <ThemedText type="default" style={styles.anomalyTitle}>
+                    {anomaly.title}
+                  </ThemedText>
+                </View>
+                <ThemedText type="small" themeColor="textSecondary" style={styles.anomalyDesc}>
+                  {anomaly.desc}
+                </ThemedText>
+              </View>
+            ))}
+          </RNAnimated.View>
 
           {/* Root Cause Analysis */}
           {rootCauses && (
-            <>
+            <RNAnimated.View style={[{ width: '100%' }, rootCauseAnim]}>
               <View style={styles.sectionHeader}>
                 <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionLabel}>
                   ROOT CAUSE ANALYSIS
@@ -140,7 +167,7 @@ export default function DashboardScreen() {
                   </View>
                 )}
               </View>
-            </>
+            </RNAnimated.View>
           )}
 
         </SafeAreaView>
@@ -178,6 +205,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 26,
     fontWeight: '700',
+    letterSpacing: -0.5,
   },
   sectionHeader: {
     marginTop: Spacing.three,
@@ -196,8 +224,8 @@ const styles = StyleSheet.create({
   metricCard: {
     flex: 1,
     minWidth: '45%',
-    borderRadius: 14,
-    padding: Spacing.three,
+    borderRadius: 16,
+    padding: Spacing.four,
     gap: Spacing.one,
   },
   metricName: {
@@ -224,7 +252,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   anomalyCard: {
-    borderRadius: 14,
+    borderRadius: 16,
     padding: Spacing.four,
     marginBottom: Spacing.two,
     gap: Spacing.two,
@@ -249,7 +277,7 @@ const styles = StyleSheet.create({
     paddingLeft: 18,
   },
   rootCauseCard: {
-    borderRadius: 14,
+    borderRadius: 16,
     padding: Spacing.four,
     borderLeftWidth: 4,
     gap: Spacing.two,

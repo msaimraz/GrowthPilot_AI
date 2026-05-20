@@ -1,8 +1,6 @@
-import { Image } from 'expo-image';
-import { useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
-import Animated, { Easing, Keyframe } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
+import { useState, useEffect, useRef } from 'react';
+import { Dimensions, StyleSheet, View, Animated as RNAnimated } from 'react-native';
+import Svg, { Polygon, Path } from 'react-native-svg';
 
 const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
 const DURATION = 600;
@@ -12,121 +10,99 @@ export function AnimatedSplashOverlay() {
 
   if (!visible) return null;
 
-  const splashKeyframe = new Keyframe({
-    0: {
-      transform: [{ scale: INITIAL_SCALE_FACTOR }],
-      opacity: 1,
-    },
-    20: {
-      opacity: 1,
-    },
-    70: {
-      opacity: 0,
-      easing: Easing.elastic(0.7),
-    },
-    100: {
-      opacity: 0,
-      transform: [{ scale: 1 }],
-      easing: Easing.elastic(0.7),
-    },
-  });
-
   return (
-    <Animated.View
-      entering={splashKeyframe.duration(DURATION).withCallback((finished) => {
-        'worklet';
-        if (finished) {
-          scheduleOnRN(setVisible, false);
-        }
-      })}
-      style={styles.backgroundSolidColor}
-    />
+    <View style={styles.backgroundSolidColor} />
   );
 }
 
-const keyframe = new Keyframe({
-  0: {
-    transform: [{ scale: INITIAL_SCALE_FACTOR }],
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(0.7),
-  },
-});
-
-const logoKeyframe = new Keyframe({
-  0: {
-    transform: [{ scale: 1.3 }],
-    opacity: 0,
-  },
-  40: {
-    transform: [{ scale: 1.3 }],
-    opacity: 0,
-    easing: Easing.elastic(0.7),
-  },
-  100: {
-    opacity: 1,
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(0.7),
-  },
-});
-
-const glowKeyframe = new Keyframe({
-  0: {
-    transform: [{ rotateZ: '0deg' }],
-  },
-  100: {
-    transform: [{ rotateZ: '7200deg' }],
-  },
-});
-
 export function AnimatedIcon() {
+  const pulseAnim = useRef(new RNAnimated.Value(0.95)).current;
+  const rotateAnim = useRef(new RNAnimated.Value(0)).current;
+
+  useEffect(() => {
+    // Pulse loop for the background hexagon
+    RNAnimated.loop(
+      RNAnimated.sequence([
+        RNAnimated.timing(pulseAnim, { toValue: 1.05, duration: 1500, useNativeDriver: true }),
+        RNAnimated.timing(pulseAnim, { toValue: 0.95, duration: 1500, useNativeDriver: true }),
+      ])
+    ).start();
+
+    // Rotate loop for the inner sparkle star
+    RNAnimated.loop(
+      RNAnimated.timing(rotateAnim, { toValue: 1, duration: 8000, useNativeDriver: true })
+    ).start();
+  }, []);
+
+  const spin = rotateAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <View style={styles.iconContainer}>
-      <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
-        <Image style={styles.glow} source={require('@/assets/images/logo-glow.png')} />
-      </Animated.View>
+      {/* Dynamic 3D Hexagon SVG Wrapper */}
+      <RNAnimated.View style={[styles.logoWrapper, { transform: [{ scale: pulseAnim }] }]}>
+        <Svg width="120" height="120" viewBox="0 0 120 120" fill="none">
+          {/* Main Blue Hexagon Outline & Glow Shadow */}
+          <Polygon 
+            points="60,10 105,35 105,85 60,110 15,85 15,35" 
+            fill="#4285F4" 
+            stroke="#1E293B"
+            strokeWidth="3.5"
+          />
+          {/* Layered Inner Hexagon Accent for premium 3D Depth */}
+          <Polygon 
+            points="60,20 95,40 95,80 60,100 25,80 25,40" 
+            fill="#2F75E8"
+          />
+        </Svg>
 
-      <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
-      <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
-        <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />
-      </Animated.View>
+        {/* Pulsing & Spinning Sparkle Star (Gemini / AI Seekho Core Brand Emblem) */}
+        <RNAnimated.View style={[styles.sparkleContainer, { transform: [{ rotate: spin }] }]}>
+          <Svg width="46" height="46" viewBox="0 0 24 24" fill="none">
+            <Path 
+              d="M12 2C12 7.52285 7.52285 12 2 12C7.52285 12 12 16.4771 12 22C12 16.4771 16.4771 12 22 12C16.4771 12 12 7.52285 12 2Z" 
+              fill="#FFFFFF" 
+            />
+          </Svg>
+        </RNAnimated.View>
+      </RNAnimated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  imageContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  glow: {
-    width: 201,
-    height: 201,
-    position: 'absolute',
-  },
   iconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    width: 128,
-    height: 128,
+    width: 140,
+    height: 140,
     zIndex: 100,
+    marginBottom: 8,
   },
-  image: {
-    position: 'absolute',
-    width: 76,
-    height: 71,
+  logoWrapper: {
+    width: 120,
+    height: 120,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    shadowColor: '#4285F4',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
+    elevation: 10,
   },
-  background: {
-    borderRadius: 40,
-    experimental_backgroundImage: `linear-gradient(180deg, #3C9FFE, #0274DF)`,
-    width: 128,
-    height: 128,
+  sparkleContainer: {
     position: 'absolute',
+    width: 46,
+    height: 46,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   backgroundSolidColor: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#208AEF',
+    backgroundColor: '#0F172A',
     zIndex: 1000,
   },
 });

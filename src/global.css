@@ -6,3 +6,151 @@
   --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
 }
+
+/* === PREMIUM ANIMATIONS === */
+
+/* Smooth fade-in for page entry */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Gentle pulse for active agent dot */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.15); }
+}
+
+/* Thinking shimmer sweep */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Blinking terminal cursor */
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+/* Glow ring animation */
+@keyframes glowRing {
+  0%, 100% { box-shadow: 0 0 8px rgba(14, 165, 233, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(14, 165, 233, 0.6); }
+}
+
+/* Subtle card hover lift */
+@keyframes hoverLift {
+  from { transform: translateY(0); }
+  to { transform: translateY(-2px); }
+}
+
+/* Scale up entry */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Progress bar fill animation */
+@keyframes fillBar {
+  from { width: 0%; }
+}
+
+/* Rotate for spinner */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* === UTILITY CLASSES === */
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.5s ease-out both;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.4s ease-out both;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(14, 165, 233, 0.05) 25%,
+    rgba(14, 165, 233, 0.15) 50%,
+    rgba(14, 165, 233, 0.05) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+.animate-blink {
+  animation: blink 1s step-end infinite;
+}
+
+.animate-glow {
+  animation: glowRing 2.5s ease-in-out infinite;
+}
+
+/* Staggered children entry */
+.stagger-children > * {
+  animation: fadeInUp 0.45s ease-out both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 400ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 480ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 560ms; }
+
+/* Premium card transitions */
+[data-pressable] {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.15s ease;
+}
+[data-pressable]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+[data-pressable]:active {
+  transform: translateY(0px);
+}
+
+/* Smooth scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0F172A;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Agent thinking dots */
+.thinking-dots::after {
+  content: '';
+  animation: thinkingDots 1.5s steps(4, end) infinite;
+}
+
+@keyframes thinkingDots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
