@@ -1,6 +1,7 @@
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { Tabs } from 'expo-router';
 import React from 'react';
 import { useColorScheme } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { Colors } from '@/constants/theme';
 
@@ -9,57 +10,85 @@ export default function AppTabs() {
   const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
 
   return (
-    <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
-      <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Intake</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: colors.backgroundSelected,
+        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarStyle: {
+          backgroundColor: colors.background,
+          borderTopColor: colors.backgroundElement,
+          borderTopWidth: 1,
+          elevation: 0,
+          shadowOpacity: 0,
+          height: 64,
+          paddingBottom: 10,
+          paddingTop: 8,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '600',
+        },
+        headerShown: false,
+      }}>
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Intake',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'cloud-upload' : 'cloud-upload-outline'} size={22} color={color} />
+          ),
+        }}
+      />
 
-      <NativeTabs.Trigger name="timeline">
-        <NativeTabs.Trigger.Label>Timeline</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/timeline.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+      <Tabs.Screen
+        name="timeline"
+        options={{
+          title: 'Operator',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'compass' : 'compass-outline'} size={22} color={color} />
+          ),
+        }}
+      />
 
-      <NativeTabs.Trigger name="dashboard">
-        <NativeTabs.Trigger.Label>Dashboard</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/dashboard.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+      <Tabs.Screen
+        name="dashboard"
+        options={{
+          title: 'Insights',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'eye' : 'eye-outline'} size={22} color={color} />
+          ),
+        }}
+      />
 
-      <NativeTabs.Trigger name="actions">
-        <NativeTabs.Trigger.Label>Actions</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/actions.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+      <Tabs.Screen
+        name="actions"
+        options={{
+          title: 'Decide',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'git-branch' : 'git-branch-outline'} size={22} color={color} />
+          ),
+        }}
+      />
 
-      <NativeTabs.Trigger name="simulation">
-        <NativeTabs.Trigger.Label>Simulation</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/simulation.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
+      <Tabs.Screen
+        name="simulation"
+        options={{
+          title: 'Act',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'terminal' : 'terminal-outline'} size={22} color={color} />
+          ),
+        }}
+      />
 
-      <NativeTabs.Trigger name="results">
-        <NativeTabs.Trigger.Label>Results</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/results.png')}
-          renderingMode="template"
-        />
-      </NativeTabs.Trigger>
-    </NativeTabs>
+      <Tabs.Screen
+        name="results"
+        options={{
+          title: 'Evaluate',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'award' : 'award-outline'} size={22} color={color} />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }
